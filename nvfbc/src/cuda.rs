@@ -4,16 +4,16 @@ use nvfbc_sys::_NVFBCSTATUS_NVFBC_SUCCESS as SUCCESS;
 
 use crate::{BufferFormat, Error, Status, CaptureType, CudaFrameInfo};
 
-pub struct CudaFbc {
+pub struct CudaCapturer {
 	handle: nvfbc_sys::NVFBC_SESSION_HANDLE,
 }
 
-impl CudaFbc {
-	pub fn new(buffer_format: BufferFormat) -> Result<Self, Error> {
+impl CudaCapturer {
+	pub fn new() -> Result<Self, Error> {
 		let handle = Self::create_handle()?;
 
 		let self_ = Self { handle };
-		self_.setup(buffer_format)?;
+		self_.setup()?;
 
 		Ok(self_)
 	}
@@ -50,7 +50,22 @@ impl CudaFbc {
 		error.to_str().ok().map(|e| e.to_string())
 	}
 
-	fn setup(&self, buffer_format: BufferFormat) -> Result<(), Error> {
+	fn setup(&self) -> Result<(), Error> {
+		let mut params: nvfbc_sys::_NVFBC_CREATE_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
+		params.dwVersion = nvfbc_sys::NVFBC_CREATE_CAPTURE_SESSION_PARAMS_VER;
+		params.eCaptureType = CaptureType::SharedCuda as c_uint;
+		params.bWithCursor = nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE;
+		params.frameSize = nvfbc_sys::NVFBC_SIZE { w: 0, h: 0 };
+		params.eTrackingType = nvfbc_sys::NVFBC_TRACKING_TYPE_NVFBC_TRACKING_DEFAULT;
+		let ret = unsafe { nvfbc_sys::NvFBCCreateCaptureSession(self.handle, &mut params) };
+		if ret != SUCCESS {
+			return Err(Error::new(ret, self.get_last_error()));
+		}
+
+		Ok(())
+	}
+
+	pub fn start(&self, buffer_format: BufferFormat) -> Result<(), Error> {
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS_VER;
 		params.eBufferFormat = buffer_format as u32;
@@ -73,21 +88,6 @@ impl CudaFbc {
 		Ok(params.into())
 	}
 
-	pub fn start(&self, capture_type: CaptureType) -> Result<(), Error> {
-		let mut params: nvfbc_sys::_NVFBC_CREATE_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
-		params.dwVersion = nvfbc_sys::NVFBC_CREATE_CAPTURE_SESSION_PARAMS_VER;
-		params.eCaptureType = capture_type as c_uint;
-		params.bWithCursor = nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE;
-		params.frameSize = nvfbc_sys::NVFBC_SIZE { w: 0, h: 0 };
-		params.eTrackingType = nvfbc_sys::NVFBC_TRACKING_TYPE_NVFBC_TRACKING_DEFAULT;
-		let ret = unsafe { nvfbc_sys::NvFBCCreateCaptureSession(self.handle, &mut params) };
-		if ret != SUCCESS {
-			return Err(Error::new(ret, self.get_last_error()));
-		}
-
-		Ok(())
-	}
-
 	pub fn stop(&self) -> Result<(), Error> {
 		let mut params: nvfbc_sys::_NVFBC_DESTROY_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_DESTROY_CAPTURE_SESSION_PARAMS_VER;
@@ -99,7 +99,7 @@ impl CudaFbc {
 		Ok(())
 	}
 
-	pub fn frame(&self) -> Result<CudaFrameInfo, Error> {
+	pub fn grab(&self) -> Result<CudaFrameInfo, Error> {
 		let mut device_buffer: *mut c_void = null_mut();
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
@@ -122,10 +122,10 @@ impl CudaFbc {
 	}
 }
 
-impl Drop for CudaFbc {
+impl Drop for CudaCapturer {
 	fn drop(&mut self) {
-		self.stop().unwrap();
+		self.stop().ok();
 		// TODO: Figure out why this crashes (nvfbc examples also fail here..)
-		self.destroy_handle().unwrap();
+		self.destroy_handle().ok();
 	}
 }

@@ -4,4 +4,4 @@ mod cuda;
 
 pub use types::*;
 pub use error::Error;
-pub use cuda::CudaFbc;
+pub use cuda::CudaCapturer;
