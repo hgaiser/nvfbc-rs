@@ -1,6 +1,6 @@
 use std::{ffi::{CStr, c_void}, mem::MaybeUninit, ptr::null_mut, os::raw::c_uint};
 
-use nvfbc_sys::_NVFBCSTATUS_NVFBC_SUCCESS;
+use nvfbc_sys::_NVFBCSTATUS_NVFBC_SUCCESS as SUCCESS;
 
 use crate::{BufferFormat, Error, Status, CaptureType, CudaFrameInfo};
 
@@ -26,7 +26,7 @@ impl CudaFbc {
 			&mut handle,
 			&mut params
 		)};
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, None));
 		}
 
@@ -37,7 +37,7 @@ impl CudaFbc {
 		let mut params: nvfbc_sys::_NVFBC_DESTROY_HANDLE_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_DESTROY_HANDLE_PARAMS_VER;
 		let ret = unsafe { nvfbc_sys::NvFBCDestroyHandle(self.handle, &mut params) };
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, self.get_last_error()));
 		}
 
@@ -55,7 +55,7 @@ impl CudaFbc {
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS_VER;
 		params.eBufferFormat = buffer_format as u32;
 		let ret = unsafe { nvfbc_sys::NvFBCToCudaSetUp(self.handle, &mut params) };
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, self.get_last_error()));
 		}
 
@@ -66,7 +66,7 @@ impl CudaFbc {
 		let mut params: nvfbc_sys::_NVFBC_GET_STATUS_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_GET_STATUS_PARAMS_VER;
 		let ret = unsafe { nvfbc_sys::NvFBCGetStatus(self.handle, &mut params) };
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, self.get_last_error()));
 		}
 
@@ -81,7 +81,7 @@ impl CudaFbc {
 		params.frameSize = nvfbc_sys::NVFBC_SIZE { w: 0, h: 0 };
 		params.eTrackingType = nvfbc_sys::NVFBC_TRACKING_TYPE_NVFBC_TRACKING_DEFAULT;
 		let ret = unsafe { nvfbc_sys::NvFBCCreateCaptureSession(self.handle, &mut params) };
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, self.get_last_error()));
 		}
 
@@ -92,7 +92,7 @@ impl CudaFbc {
 		let mut params: nvfbc_sys::_NVFBC_DESTROY_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_DESTROY_CAPTURE_SESSION_PARAMS_VER;
 		let ret = unsafe { nvfbc_sys::NvFBCDestroyCaptureSession(self.handle, &mut params) };
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, self.get_last_error()));
 		}
 
@@ -108,7 +108,7 @@ impl CudaFbc {
 		params.pFrameGrabInfo = &mut frame_info;
 		params.pCUDADeviceBuffer = &mut device_buffer as *mut _ as *mut c_void;
 		let ret = unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) };
-		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
+		if ret != SUCCESS {
 			return Err(Error::new(ret, self.get_last_error()));
 		}
 
