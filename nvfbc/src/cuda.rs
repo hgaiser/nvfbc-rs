@@ -4,11 +4,11 @@ use nvfbc_sys::_NVFBCSTATUS_NVFBC_SUCCESS;
 
 use crate::{BufferFormat, Error, Status, CaptureType, CudaFrameInfo};
 
-pub struct FrontBufferToCuda {
+pub struct CudaFbc {
 	handle: nvfbc_sys::NVFBC_SESSION_HANDLE,
 }
 
-impl FrontBufferToCuda {
+impl CudaFbc {
 	pub fn new(buffer_format: BufferFormat) -> Result<Self, Error> {
 		let handle = Self::create_handle()?;
 
@@ -122,7 +122,7 @@ impl FrontBufferToCuda {
 	}
 }
 
-impl Drop for FrontBufferToCuda {
+impl Drop for CudaFbc {
 	fn drop(&mut self) {
 		self.stop().unwrap();
 		// TODO: Figure out why this crashes (nvfbc examples also fail here..)
