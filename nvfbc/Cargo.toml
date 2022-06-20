@@ -11,4 +11,3 @@ repository = "https://github.com/hgaiser/nvfbc-rs"
 
 [dependencies]
 nvfbc-sys = { path = "../nvfbc-sys" }
-thiserror = "1.0.24"

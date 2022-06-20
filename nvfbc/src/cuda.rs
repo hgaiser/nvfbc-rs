@@ -27,7 +27,7 @@ impl FrontBufferToCuda {
 			&mut params
 		)};
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), None));
+			return Err(Error::new(ret, None));
 		}
 
 		Ok(handle)
@@ -38,16 +38,16 @@ impl FrontBufferToCuda {
 		params.dwVersion = nvfbc_sys::NVFBC_DESTROY_HANDLE_PARAMS_VER;
 		let ret = unsafe { nvfbc_sys::NvFBCDestroyHandle(self.handle, &mut params) };
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), self.get_last_error().ok()));
+			return Err(Error::new(ret, self.get_last_error()));
 		}
 
 		Ok(())
 	}
 
-	fn get_last_error(&self) -> Result<String, Error> {
+	fn get_last_error(&self) -> Option<String> {
 		let error = unsafe { nvfbc_sys::NvFBCGetLastErrorStr(self.handle) };
 		let error = unsafe { CStr::from_ptr(error) };
-		Ok(error.to_str()?.to_string())
+		error.to_str().ok().map(|e| e.to_string())
 	}
 
 	fn setup(&self, buffer_format: BufferFormat) -> Result<(), Error> {
@@ -56,7 +56,7 @@ impl FrontBufferToCuda {
 		params.eBufferFormat = buffer_format as u32;
 		let ret = unsafe { nvfbc_sys::NvFBCToCudaSetUp(self.handle, &mut params) };
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), self.get_last_error().ok()));
+			return Err(Error::new(ret, self.get_last_error()));
 		}
 
 		Ok(())
@@ -67,7 +67,7 @@ impl FrontBufferToCuda {
 		params.dwVersion = nvfbc_sys::NVFBC_GET_STATUS_PARAMS_VER;
 		let ret = unsafe { nvfbc_sys::NvFBCGetStatus(self.handle, &mut params) };
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), self.get_last_error().ok()));
+			return Err(Error::new(ret, self.get_last_error()));
 		}
 
 		Ok(params.into())
@@ -82,7 +82,7 @@ impl FrontBufferToCuda {
 		params.eTrackingType = nvfbc_sys::NVFBC_TRACKING_TYPE_NVFBC_TRACKING_DEFAULT;
 		let ret = unsafe { nvfbc_sys::NvFBCCreateCaptureSession(self.handle, &mut params) };
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), self.get_last_error().ok()));
+			return Err(Error::new(ret, self.get_last_error()));
 		}
 
 		Ok(())
@@ -93,7 +93,7 @@ impl FrontBufferToCuda {
 		params.dwVersion = nvfbc_sys::NVFBC_DESTROY_CAPTURE_SESSION_PARAMS_VER;
 		let ret = unsafe { nvfbc_sys::NvFBCDestroyCaptureSession(self.handle, &mut params) };
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), self.get_last_error().ok()));
+			return Err(Error::new(ret, self.get_last_error()));
 		}
 
 		Ok(())
@@ -109,7 +109,7 @@ impl FrontBufferToCuda {
 		params.pCUDADeviceBuffer = &mut device_buffer as *mut _ as *mut c_void;
 		let ret = unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) };
 		if ret != _NVFBCSTATUS_NVFBC_SUCCESS {
-			return Err(Error::InternalError(ret.into(), self.get_last_error().ok()));
+			return Err(Error::new(ret, self.get_last_error()));
 		}
 
 		Ok(CudaFrameInfo {
