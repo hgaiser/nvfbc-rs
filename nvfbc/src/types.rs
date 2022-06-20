@@ -1,4 +1,20 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, c_void};
+
+#[derive(Debug, Copy, Clone)]
+pub struct CudaFrameInfo {
+	/// Pointer to the CUDA device where the frame is grabbed.
+	pub device_buffer: *mut c_void,
+	/// Width of the captured frame.
+	pub width: u32,
+	/// Height of the captured frame.
+	pub height: u32,
+	/// Size of the frame in bytes.
+	pub byte_size: u32,
+	/// Incremental ID of the current frame.
+	///
+	/// This can be used to identify a frame.
+	pub current_frame: u32,
+}
 
 #[derive(Debug, Copy, Clone)]
 pub enum CaptureType {

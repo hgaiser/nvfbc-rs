@@ -8,22 +8,6 @@ mod error;
 pub use types::*;
 pub use error::Error;
 
-#[derive(Debug, Copy, Clone)]
-pub struct CudaFrameInfo {
-	/// Pointer to the CUDA device where the frame is grabbed.
-	pub device_buffer: *mut c_void,
-	/// Width of the captured frame.
-	pub width: u32,
-	/// Height of the captured frame.
-	pub height: u32,
-	/// Size of the frame in bytes.
-	pub byte_size: u32,
-	/// Incremental ID of the current frame.
-	///
-	/// This can be used to identify a frame.
-	pub current_frame: u32,
-}
-
 pub struct NvFbc {
 	handle: nvfbc_sys::NVFBC_SESSION_HANDLE,
 }
