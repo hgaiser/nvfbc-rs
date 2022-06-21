@@ -17,6 +17,22 @@ pub struct CudaFrameInfo {
 }
 
 #[derive(Debug, Copy, Clone)]
+pub struct SystemFrameInfo {
+	/// Pointer to the frame that is grabbed.
+	pub buffer: *mut c_void,
+	/// Width of the captured frame.
+	pub width: u32,
+	/// Height of the captured frame.
+	pub height: u32,
+	/// Size of the frame in bytes.
+	pub byte_size: usize,
+	/// Incremental ID of the current frame.
+	///
+	/// This can be used to identify a frame.
+	pub current_frame: u32,
+}
+
+#[derive(Debug, Copy, Clone)]
 pub enum CaptureType {
 	/// Capture frames to a buffer in system memory.
 	ToSystem = nvfbc_sys::_NVFBC_CAPTURE_TYPE_NVFBC_CAPTURE_TO_SYS as isize,
