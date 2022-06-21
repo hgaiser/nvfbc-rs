@@ -10,7 +10,7 @@ fn main() -> Result<(), Error> {
 
 	capturer.start(BufferFormat::Rgb)?;
 
-	let frame_info = capturer.next()?;
+	let frame_info = capturer.next_frame()?;
 	println!("{:#?}", frame_info);
 
 	let image = image::ImageBuffer::<Rgb<u8>, &[u8]>::from_raw(

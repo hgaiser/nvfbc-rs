@@ -48,7 +48,7 @@ impl CudaCapturer {
 		destroy_capture_session(self.handle)
 	}
 
-	pub fn next(&self) -> Result<CudaFrameInfo, Error> {
+	pub fn next_frame(&mut self) -> Result<CudaFrameInfo, Error> {
 		let device_buffer: *mut c_void = null_mut();
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };

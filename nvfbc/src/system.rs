@@ -49,7 +49,7 @@ impl SystemCapturer {
 		destroy_capture_session(self.handle)
 	}
 
-	pub fn next(&self) -> Result<SystemFrameInfo, Error> {
+	pub fn next_frame(&mut self) -> Result<SystemFrameInfo, Error> {
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS_VER;
