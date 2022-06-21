@@ -44,3 +44,5 @@ impl fmt::Display for Error {
 		Ok(())
 	}
 }
+
+impl std::error::Error for Error {}
