@@ -52,7 +52,6 @@ impl CudaCapturer {
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS_VER;
 		params.dwFlags = nvfbc_sys::NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS;
 		params.pFrameGrabInfo = &mut frame_info;
-		params.pCUDADeviceBuffer = std::ptr::null_mut();
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) })?;
 
 		Ok(CudaFrameInfo {
