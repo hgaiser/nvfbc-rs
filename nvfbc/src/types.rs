@@ -1,9 +1,11 @@
-use std::ffi::{CStr, c_void};
+use std::ffi::CStr;
 
 #[derive(Debug, Copy, Clone)]
 pub struct CudaFrameInfo {
-	/// Pointer to the CUDA device where the frame is grabbed.
-	pub device_buffer: *mut c_void,
+	/// Address of the CUDA buffer where the frame is grabbed.
+	///
+	/// Note that this an address in CUDA memory, not in system memory.
+	pub buffer_address: usize,
 	/// Width of the captured frame.
 	pub width: u32,
 	/// Height of the captured frame.
