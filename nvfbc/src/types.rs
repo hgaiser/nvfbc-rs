@@ -5,7 +5,7 @@ pub struct CudaFrameInfo {
 	/// Address of the CUDA buffer where the frame is grabbed.
 	///
 	/// Note that this an address in CUDA memory, not in system memory.
-	pub buffer_address: usize,
+	pub device_buffer: usize,
 	/// Width of the captured frame.
 	pub width: u32,
 	/// Height of the captured frame.
