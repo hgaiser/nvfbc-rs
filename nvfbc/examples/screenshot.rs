@@ -1,5 +1,3 @@
-use std::slice::from_raw_parts;
-
 use image::Rgb;
 use nvfbc::{SystemCapturer, BufferFormat, Error};
 
@@ -16,7 +14,7 @@ fn main() -> Result<(), Error> {
 	let image = image::ImageBuffer::<Rgb<u8>, &[u8]>::from_raw(
 		frame_info.width,
 		frame_info.height,
-		unsafe { from_raw_parts(frame_info.buffer as *const u8, frame_info.byte_size) }
+		frame_info.buffer,
 	).unwrap();
 	image.save("frame.png").unwrap();
 	println!("Saved frame to 'frame.png'.");
