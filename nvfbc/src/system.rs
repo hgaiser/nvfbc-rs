@@ -41,7 +41,7 @@ impl SystemCapturer {
 		let mut params: nvfbc_sys::NVFBC_TOSYS_SETUP_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_SETUP_PARAMS_VER;
 		params.eBufferFormat = buffer_format as u32;
-		params.ppBuffer = &mut self.buffer as *mut _;
+		params.ppBuffer = &mut self.buffer;
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysSetUp(self.handle, &mut params) })
 	}
 
@@ -56,12 +56,12 @@ impl SystemCapturer {
 		params.dwFlags = nvfbc_sys::NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS;
 		params.pFrameGrabInfo = &mut frame_info;
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysGrabFrame(self.handle, &mut params) })?;
+		let buffer = unsafe { std::slice::from_raw_parts(self.buffer.cast(), frame_info.dwByteSize as usize) };
 
 		Ok(SystemFrameInfo {
-			buffer: self.buffer,
+			buffer,
 			width: frame_info.dwWidth,
 			height: frame_info.dwHeight,
-			byte_size: frame_info.dwByteSize as usize,
 			current_frame: frame_info.dwCurrentFrame,
 		})
 	}
