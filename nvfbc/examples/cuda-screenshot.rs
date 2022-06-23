@@ -1,7 +1,8 @@
 use std::error::Error;
 
+use image::{Rgb, ImageBuffer};
 use nvfbc::{BufferFormat, CudaCapturer};
-use rustacuda::{CudaFlags, device::Device, context::{Context, ContextFlags}, prelude::{DeviceBuffer, CopyDestination}};
+use rustacuda::{CudaFlags, device::Device, context::{Context, ContextFlags}, prelude::{DeviceBuffer, CopyDestination}, memory::LockedBuffer};
 use rustacuda_core::DevicePointer;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -35,11 +36,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 		frame_info.byte_size as usize,
 	) };
 
-	// Create system memory buffer.
-	let mut frame = image::RgbImage::new(frame_info.width, frame_info.height);
-	device_buffer.copy_to(frame.as_mut())?;
+	// Create a page locked buffer to avoid unnecessary copying.
+	// See https://docs.rs/rustacuda/latest/rustacuda/memory/index.html#page-locked-host-memory for more information.
+	let mut data: LockedBuffer<u8> = unsafe { LockedBuffer::uninitialized(frame_info.byte_size as usize) }?;
+
+	// Copy device memory to host memory and wrap it as an image.
+	device_buffer.copy_to(&mut data)?;
+	let slice = data.as_slice();
+	let frame = ImageBuffer::<Rgb<u8>, &[u8]>::from_raw(frame_info.width, frame_info.height, slice).unwrap();
 	frame.save("frame.png")?;
-	println!("Saved frame to 'frame.png'.");
 
 	// TODO: Find a better way to avoid a double free.
 	std::mem::forget(device_buffer);
