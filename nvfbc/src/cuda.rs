@@ -19,6 +19,7 @@ use crate::common::{
 	status,
 };
 
+/// Contains information about a frame captured in a CUDA device.
 #[derive(Copy, Clone)]
 pub struct CudaFrameInfo {
 	/// Address of the CUDA buffer where the frame is grabbed.
@@ -68,7 +69,7 @@ impl CudaCapturer {
 		status(self.handle)
 	}
 
-	/// Start a capture session.
+	/// Start a capture session with the desired buffer format.
 	pub fn start(&self, buffer_format: BufferFormat) -> Result<(), Error> {
 		create_capture_session(self.handle, CaptureType::SharedCuda)?;
 

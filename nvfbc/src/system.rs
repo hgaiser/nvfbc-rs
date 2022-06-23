@@ -19,6 +19,9 @@ use crate::{
 	CaptureType,
 };
 
+/// Contains information about a frame captured in a CUDA device.
+///
+/// The lifetime of this struct is tied to the lifetime of the SystemCapturer that captured this frame.
 #[derive(Clone)]
 pub struct SystemFrameInfo<'a> {
 	/// Pointer to the frame that is grabbed.
@@ -45,6 +48,7 @@ impl std::fmt::Debug for SystemFrameInfo<'_> {
 	}
 }
 
+/// Uses NVFBC to capture frames directly to system memory.
 pub struct SystemCapturer {
 	/// The nvfbc handle.
 	handle: Handle,
@@ -61,16 +65,21 @@ pub struct SystemCapturer {
 }
 
 impl SystemCapturer {
+	/// Creates a new SystemCapturer object.
+	///
+	/// This also initializes a handle for the NVFBC API.
 	pub fn new() -> Result<Self, Error> {
 		let handle = create_handle()?;
 		let self_ = Self { handle, buffer: Box::new(Cell::new(null_mut())) };
 		Ok(self_)
 	}
 
+	/// Retrieve the status of NVFBC.
 	pub fn status(&self) -> Result<Status, Error> {
 		status(self.handle)
 	}
 
+	/// Start a capture session with the desired buffer format.
 	pub fn start(&mut self, buffer_format: BufferFormat) -> Result<(), Error> {
 		create_capture_session(self.handle, CaptureType::ToSystem)?;
 
@@ -81,10 +90,20 @@ impl SystemCapturer {
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysSetUp(self.handle, &mut params) })
 	}
 
+	/// Stop a capture session.
 	pub fn stop(&self) -> Result<(), Error> {
 		destroy_capture_session(self.handle)
 	}
 
+	/// Retrieve the next frame from the GPU.
+	///
+	/// Since NVFBC takes full control of the pointer to the buffer,
+	/// only one frame is allowed to exist at the same time.
+	/// This ensures that NVFBC does not change the buffer while there is access to it.
+	///
+	/// If this restriction would be lifted, there would be a risk of unsound behaviour.
+	/// For example: calling next_frame() twice would overwrite the first buffer with the content of the second buffer.
+	/// Changing resolution inbetween the two calls could lead to reading out of bounds memory.
 	pub fn next_frame(&mut self) -> Result<SystemFrameInfo, Error> {
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
