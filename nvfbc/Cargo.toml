@@ -1,6 +1,6 @@
 [package]
 name = "nvfbc"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Safe bindings for NVFBC, an NVIDIA API for capturing the front buffer from NVIDIA GPUs."
 authors = ["Hans Gaiser <hans@hgaiser.nl>"]
