@@ -19,22 +19,34 @@ use crate::common::{
 	status,
 };
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct CudaFrameInfo {
 	/// Address of the CUDA buffer where the frame is grabbed.
 	///
 	/// Note that this an address in CUDA memory, not in system memory.
 	pub device_buffer: usize,
+	/// Size of the frame in bytes.
+	pub device_buffer_len: u32,
 	/// Width of the captured frame.
 	pub width: u32,
 	/// Height of the captured frame.
 	pub height: u32,
-	/// Size of the frame in bytes.
-	pub byte_size: u32,
 	/// Incremental ID of the current frame.
 	///
 	/// This can be used to identify a frame.
 	pub current_frame: u32,
+}
+
+impl std::fmt::Debug for CudaFrameInfo {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		f.debug_struct("CudaFrameInfo")
+			.field("device_buffer", &(&self.device_buffer as *const usize))
+			.field("device_buffer_len", &self.device_buffer_len)
+			.field("width", &self.width)
+			.field("height", &self.height)
+			.field("current_frame", &self.current_frame)
+			.finish()
+	}
 }
 
 /// Uses NVFBC to capture frames in the form of a CUDA device pointer.
@@ -84,9 +96,9 @@ impl CudaCapturer {
 
 		Ok(CudaFrameInfo {
 			device_buffer: device_buffer as usize,
+			device_buffer_len: frame_info.dwByteSize,
 			width: frame_info.dwWidth,
 			height: frame_info.dwHeight,
-			byte_size: frame_info.dwByteSize,
 			current_frame: frame_info.dwCurrentFrame,
 		})
 	}

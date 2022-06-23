@@ -39,12 +39,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 	// Wrap the buffer in GPU memory.
 	let device_buffer = ManuallyDrop::new(unsafe { DeviceBuffer::from_raw_parts(
 		DevicePointer::wrap(frame_info.device_buffer as *mut u8),
-		frame_info.byte_size as usize,
+		frame_info.device_buffer_len as usize,
 	) });
 
 	// Create a page locked buffer to avoid unnecessary copying.
 	// See https://docs.rs/rustacuda/latest/rustacuda/memory/index.html#page-locked-host-memory for more information.
-	let mut data: LockedBuffer<u8> = unsafe { LockedBuffer::uninitialized(frame_info.byte_size as usize) }?;
+	let mut data: LockedBuffer<u8> = unsafe { LockedBuffer::uninitialized(frame_info.device_buffer_len as usize) }?;
 
 	// Copy device memory to host memory and wrap it as an image.
 	device_buffer.copy_to(&mut data)?;
