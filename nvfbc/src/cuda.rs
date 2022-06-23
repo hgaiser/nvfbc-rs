@@ -1,6 +1,4 @@
-use std::ffi::c_void;
 use std::mem::MaybeUninit;
-use std::ptr::null_mut;
 
 use crate::{
 	BufferFormat,
@@ -49,17 +47,16 @@ impl CudaCapturer {
 	}
 
 	pub fn next_frame(&mut self) -> Result<CudaFrameInfo, Error> {
-		let device_buffer: *mut c_void = null_mut();
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS_VER;
 		params.dwFlags = nvfbc_sys::NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS;
 		params.pFrameGrabInfo = &mut frame_info;
-		params.pCUDADeviceBuffer = device_buffer;
+		params.pCUDADeviceBuffer = std::ptr::null_mut();
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) })?;
 
 		Ok(CudaFrameInfo {
-			device_buffer,
+			buffer_address: params.pCUDADeviceBuffer as usize,
 			width: frame_info.dwWidth,
 			height: frame_info.dwHeight,
 			byte_size: frame_info.dwByteSize,
