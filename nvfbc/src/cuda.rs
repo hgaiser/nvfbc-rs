@@ -5,7 +5,6 @@ use std::ptr::null_mut;
 use crate::{
 	BufferFormat,
 	CaptureType,
-	CudaFrameInfo,
 	Error,
 	Status,
 };
@@ -19,6 +18,24 @@ use crate::common::{
 	destroy_handle,
 	status,
 };
+
+#[derive(Debug, Copy, Clone)]
+pub struct CudaFrameInfo {
+	/// Address of the CUDA buffer where the frame is grabbed.
+	///
+	/// Note that this an address in CUDA memory, not in system memory.
+	pub device_buffer: usize,
+	/// Width of the captured frame.
+	pub width: u32,
+	/// Height of the captured frame.
+	pub height: u32,
+	/// Size of the frame in bytes.
+	pub byte_size: u32,
+	/// Incremental ID of the current frame.
+	///
+	/// This can be used to identify a frame.
+	pub current_frame: u32,
+}
 
 /// Uses NVFBC to capture frames in the form of a CUDA device pointer.
 pub struct CudaCapturer {

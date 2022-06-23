@@ -1,50 +1,6 @@
 use std::ffi::CStr;
 
 #[derive(Debug, Copy, Clone)]
-pub struct CudaFrameInfo {
-	/// Address of the CUDA buffer where the frame is grabbed.
-	///
-	/// Note that this an address in CUDA memory, not in system memory.
-	pub device_buffer: usize,
-	/// Width of the captured frame.
-	pub width: u32,
-	/// Height of the captured frame.
-	pub height: u32,
-	/// Size of the frame in bytes.
-	pub byte_size: u32,
-	/// Incremental ID of the current frame.
-	///
-	/// This can be used to identify a frame.
-	pub current_frame: u32,
-}
-
-#[derive(Clone)]
-pub struct SystemFrameInfo<'a> {
-	/// Pointer to the frame that is grabbed.
-	pub buffer: &'a [u8],
-	/// Width of the captured frame.
-	pub width: u32,
-	/// Height of the captured frame.
-	pub height: u32,
-	/// Incremental ID of the current frame.
-	///
-	/// This can be used to identify a frame.
-	pub current_frame: u32,
-}
-
-impl std::fmt::Debug for SystemFrameInfo<'_> {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		f.debug_struct("SystemFrameInfo")
-			.field("buffer", &self.buffer.as_ptr())
-			.field("buffer_len", &self.buffer.len())
-			.field("width", &self.width)
-			.field("height", &self.height)
-			.field("current_frame", &self.current_frame)
-			.finish()
-	}
-}
-
-#[derive(Debug, Copy, Clone)]
 pub enum CaptureType {
 	/// Capture frames to a buffer in system memory.
 	ToSystem = nvfbc_sys::_NVFBC_CAPTURE_TYPE_NVFBC_CAPTURE_TO_SYS as isize,

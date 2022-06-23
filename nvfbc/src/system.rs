@@ -17,8 +17,33 @@ use crate::{
 	Error,
 	Status,
 	CaptureType,
-	SystemFrameInfo
 };
+
+#[derive(Clone)]
+pub struct SystemFrameInfo<'a> {
+	/// Pointer to the frame that is grabbed.
+	pub buffer: &'a [u8],
+	/// Width of the captured frame.
+	pub width: u32,
+	/// Height of the captured frame.
+	pub height: u32,
+	/// Incremental ID of the current frame.
+	///
+	/// This can be used to identify a frame.
+	pub current_frame: u32,
+}
+
+impl std::fmt::Debug for SystemFrameInfo<'_> {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("SystemFrameInfo")
+			.field("buffer", &self.buffer.as_ptr())
+			.field("buffer_len", &self.buffer.len())
+			.field("width", &self.width)
+			.field("height", &self.height)
+			.field("current_frame", &self.current_frame)
+			.finish()
+	}
+}
 
 pub struct SystemCapturer {
 	/// The nvfbc handle.
