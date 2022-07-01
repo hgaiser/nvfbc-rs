@@ -2,6 +2,12 @@ use std::ffi::c_void;
 use std::mem::MaybeUninit;
 use std::ptr::null_mut;
 
+use nvfbc_sys::{
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT,
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS,
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY
+};
+
 use crate::{
 	BufferFormat,
 	CaptureType,
@@ -18,6 +24,22 @@ use crate::common::{
 	destroy_handle,
 	status,
 };
+
+pub enum CaptureMethod {
+	/// Capturing does not wait for a new frame nor a mouse move.
+	///
+	/// It is therefore possible to capture the same frame multiple times.
+	/// When this occurs, the current_frame parameter of the
+	/// CudaFrameInfo struct is not incremented.
+	NoWait = NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT as isize,
+
+	/// Similar to NoWait, except that the capture will not wait if there
+	/// is already a frame available that the client has never seen yet.
+	NoWaitIfNewFrame = NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY as isize,
+
+	/// Capturing waits for a new frame or mouse move.
+	Blocking = NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS as isize,
+}
 
 /// Contains information about a frame captured in a CUDA device.
 #[derive(Copy, Clone)]
@@ -85,12 +107,12 @@ impl CudaCapturer {
 	}
 
 	/// Retrieve the next frame from the GPU.
-	pub fn next_frame(&mut self) -> Result<CudaFrameInfo, Error> {
+	pub fn next_frame(&mut self, capture_method: CaptureMethod) -> Result<CudaFrameInfo, Error> {
 		let mut device_buffer: *mut c_void =  null_mut();
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS_VER;
-		params.dwFlags = nvfbc_sys::NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS;
+		params.dwFlags = capture_method as u32;
 		params.pFrameGrabInfo = &mut frame_info;
 		params.pCUDADeviceBuffer = &mut device_buffer as *mut _ as *mut c_void;
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) })?;

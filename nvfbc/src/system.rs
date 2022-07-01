@@ -3,6 +3,12 @@ use std::ffi::c_void;
 use std::mem::MaybeUninit;
 use std::ptr::null_mut;
 
+use nvfbc_sys::{
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY
+};
+
 use crate::common::{
 	Handle,
 	check_ret,
@@ -18,6 +24,13 @@ use crate::{
 	Status,
 	CaptureType,
 };
+
+/// Different methods for capturing a frame.
+pub enum CaptureMethod {
+	NoWait = NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT as isize,
+	NoWaitIfNewFrame = NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS as isize,
+	Blocking = NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY as isize,
+}
 
 /// Contains information about a frame captured in a CUDA device.
 ///
@@ -104,11 +117,11 @@ impl SystemCapturer {
 	/// If this restriction would be lifted, there would be a risk of unsound behaviour.
 	/// For example: calling next_frame() twice would overwrite the first buffer with the content of the second buffer.
 	/// Changing resolution inbetween the two calls could lead to reading out of bounds memory.
-	pub fn next_frame(&mut self) -> Result<SystemFrameInfo, Error> {
+	pub fn next_frame(&mut self, capture_method: CaptureMethod) -> Result<SystemFrameInfo, Error> {
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS_VER;
-		params.dwFlags = nvfbc_sys::NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS;
+		params.dwFlags = capture_method as u32;
 		params.pFrameGrabInfo = &mut frame_info;
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysGrabFrame(self.handle, &mut params) })?;
 		let buffer_ptr = unsafe { self.buffer.as_ptr().read_volatile().cast() };

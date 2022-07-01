@@ -1,6 +1,6 @@
 use std::error::Error;
 use image::Rgb;
-use nvfbc::{SystemCapturer, BufferFormat};
+use nvfbc::{SystemCapturer, BufferFormat, system::CaptureMethod};
 
 fn main() -> Result<(), Box<dyn Error>> {
 	let mut capturer = SystemCapturer::new()?;
@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	capturer.start(BufferFormat::Rgb)?;
 
-	let frame_info = capturer.next_frame()?;
+	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame)?;
 	println!("{:#?}", frame_info);
 
 	let image = image::ImageBuffer::<Rgb<u8>, &[u8]>::from_raw(

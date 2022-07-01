@@ -1,6 +1,7 @@
 use std::{error::Error, mem::ManuallyDrop};
 
 use image::{Rgb, ImageBuffer};
+use nvfbc::cuda::CaptureMethod;
 use nvfbc::{BufferFormat, CudaCapturer};
 use rustacuda::{
 	CudaFlags,
@@ -33,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	capturer.start(BufferFormat::Rgb)?;
 
-	let frame_info = capturer.next_frame()?;
+	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame)?;
 	println!("{:#?}", frame_info);
 
 	// Wrap the buffer in GPU memory.

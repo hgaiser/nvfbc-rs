@@ -11,6 +11,7 @@
 //! # Example: Saving an image.
 //! ```no_run
 //! use nvfbc::{SystemCapturer, BufferFormat};
+//! use nvfbc::system::CaptureMethod;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mut capturer = SystemCapturer::new()?;
@@ -23,7 +24,7 @@
 //!
 //!     capturer.start(BufferFormat::Rgb)?;
 //!
-//!     let frame_info = capturer.next_frame()?;
+//!     let frame_info = capturer.next_frame(CaptureMethod::Blocking)?;
 //!     println!("{:#?}", frame_info);
 //!
 //!     let image = image::ImageBuffer::<image::Rgb<u8>, &[u8]>::from_raw(
@@ -45,9 +46,9 @@
 //! Future releases will add more configuration options.
 
 mod common;
-mod cuda;
+pub mod cuda;
 mod error;
-mod system;
+pub mod system;
 mod types;
 
 pub use types::*;
