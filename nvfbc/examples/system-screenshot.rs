@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, time::Duration};
 use image::Rgb;
 use nvfbc::{SystemCapturer, BufferFormat, system::CaptureMethod};
 
@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		panic!("Can't create a system capture session.");
 	}
 
-	capturer.start(BufferFormat::Rgb)?;
+	capturer.start(BufferFormat::Rgb, Duration::from_millis(16))?;
 
 	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame)?;
 	println!("{:#?}", frame_info);

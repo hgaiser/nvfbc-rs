@@ -51,13 +51,14 @@ pub(crate) fn status(handle: Handle) -> Result<Status, Error> {
 	Ok(params.into())
 }
 
-pub(crate) fn create_capture_session(handle: Handle, capture_type: CaptureType) -> Result<(), Error> {
+pub(crate) fn create_capture_session(handle: Handle, capture_type: CaptureType, sampling_rate: std::time::Duration) -> Result<(), Error> {
 	let mut params: nvfbc_sys::_NVFBC_CREATE_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 	params.dwVersion = nvfbc_sys::NVFBC_CREATE_CAPTURE_SESSION_PARAMS_VER;
 	params.eCaptureType = capture_type as c_uint;
 	params.bWithCursor = nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE;
 	params.frameSize = nvfbc_sys::NVFBC_SIZE { w: 0, h: 0 };
 	params.eTrackingType = nvfbc_sys::NVFBC_TRACKING_TYPE_NVFBC_TRACKING_DEFAULT;
+	params.dwSamplingRateMs = sampling_rate.as_millis() as u32;
 	check_ret(handle, unsafe { nvfbc_sys::NvFBCCreateCaptureSession(handle, &mut params) })
 }
 

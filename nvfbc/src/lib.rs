@@ -22,7 +22,7 @@
 //!         panic!("Can't create a system capture session.");
 //!     }
 //!
-//!     capturer.start(BufferFormat::Rgb)?;
+//!     capturer.start(BufferFormat::Rgb, Duration::from_millis(16))?;
 //!
 //!     let frame_info = capturer.next_frame(CaptureMethod::Blocking)?;
 //!     println!("{:#?}", frame_info);

@@ -1,3 +1,4 @@
+use std::time::Duration;
 use std::{error::Error, mem::ManuallyDrop};
 
 use image::{Rgb, ImageBuffer};
@@ -32,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		panic!("Can't create a CUDA capture session.");
 	}
 
-	capturer.start(BufferFormat::Rgb)?;
+	capturer.start(BufferFormat::Rgb, Duration::from_millis(16))?;
 
 	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame)?;
 	println!("{:#?}", frame_info);

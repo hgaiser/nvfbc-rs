@@ -93,8 +93,8 @@ impl SystemCapturer {
 	}
 
 	/// Start a capture session with the desired buffer format.
-	pub fn start(&mut self, buffer_format: BufferFormat) -> Result<(), Error> {
-		create_capture_session(self.handle, CaptureType::ToSystem)?;
+	pub fn start(&mut self, buffer_format: BufferFormat, sampling_rate: std::time::Duration) -> Result<(), Error> {
+		create_capture_session(self.handle, CaptureType::ToSystem, sampling_rate)?;
 
 		let mut params: nvfbc_sys::NVFBC_TOSYS_SETUP_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_SETUP_PARAMS_VER;
