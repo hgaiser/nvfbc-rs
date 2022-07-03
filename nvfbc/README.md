@@ -13,6 +13,7 @@ Currently only CUDA and system (RAM) capture types are supported.
 ## Example: Saving an image.
 ```rust
 use nvfbc::{SystemCapturer, BufferFormat};
+use nvfbc::system::CaptureMethod;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut capturer = SystemCapturer::new()?;
@@ -23,9 +24,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         panic!("Can't create a system capture session.");
     }
 
-    capturer.start(BufferFormat::Rgb)?;
+    capturer.start(BufferFormat::Rgb, 30)?;
 
-    let frame_info = capturer.next_frame()?;
+    let frame_info = capturer.next_frame(CaptureMethod::Blocking)?;
     println!("{:#?}", frame_info);
 
     let image = image::ImageBuffer::<image::Rgb<u8>, &[u8]>::from_raw(
