@@ -92,8 +92,12 @@ impl CudaCapturer {
 	}
 
 	/// Start a capture session with the desired buffer format.
-	pub fn start(&self, buffer_format: BufferFormat, sampling_rate: std::time::Duration) -> Result<(), Error> {
-		create_capture_session(self.handle, CaptureType::SharedCuda, sampling_rate)?;
+	pub fn start(&self, buffer_format: BufferFormat, fps: u32) -> Result<(), Error> {
+		create_capture_session(
+			self.handle,
+			CaptureType::SharedCuda,
+			std::time::Duration::from_millis(1000 / fps as u64),
+		)?;
 
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS_VER;

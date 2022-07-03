@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		panic!("Can't create a system capture session.");
 	}
 
-	capturer.start(BufferFormat::Rgb, Duration::from_millis(16))?;
+	capturer.start(BufferFormat::Rgb, 30)?;
 
 	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame)?;
 	println!("{:#?}", frame_info);
