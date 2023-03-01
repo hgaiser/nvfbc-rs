@@ -1,4 +1,3 @@
-use std::time::Duration;
 use std::{error::Error, mem::ManuallyDrop};
 
 use image::{Rgb, ImageBuffer};

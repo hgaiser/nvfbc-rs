@@ -1,4 +1,4 @@
-use std::{error::Error, time::Duration};
+use std::error::Error;
 use image::Rgb;
 use nvfbc::{SystemCapturer, BufferFormat, system::CaptureMethod};
 
