@@ -129,6 +129,46 @@ impl CudaCapturer {
 			current_frame: frame_info.dwCurrentFrame,
 		})
 	}
+
+	/// Releases the FBC context from the calling thread.
+	///
+	/// If the FBC context is bound to a different thread, nvfbc_sys::_NVFBCSTATUS_NVFBC_ERR_CONTEXT is
+	/// returned.
+	///
+	/// If the FBC context is already released, this function has no effect.
+	pub fn release_context(&self) -> Result<(), Error> {
+		let mut params: nvfbc_sys::NVFBC_RELEASE_CONTEXT_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
+		params.dwVersion = nvfbc_sys::NVFBC_RELEASE_CONTEXT_PARAMS_VER;
+		check_ret(
+			self.handle,
+			unsafe { nvfbc_sys::NvFBCReleaseContext(self.handle, &mut params) }
+		)
+	}
+
+	/// Binds the FBC context to the calling thread.
+	///
+	/// The NvFBC library internally relies on objects that must be bound to a
+	/// thread. Such objects are OpenGL contexts and CUDA contexts.
+	///
+	/// This function binds these objects to the calling thread.
+	///
+	/// The FBC context must be bound to the calling thread for most NvFBC entry
+	/// points, otherwise nvfbc_sys::_NVFBCSTATUS_NVFBC_ERR_CONTEXT is returned.
+	///
+	/// If the FBC context is already bound to a different thread,
+	/// nvfbc_sys::_NVFBCSTATUS_NVFBC_ERR_CONTEXT is returned.
+	/// The other thread must release the context first by calling the release_context().
+	///
+	/// If the FBC context is already bound to the current thread, this function has
+	/// no effects.
+	pub fn bind_context(&self) -> Result<(), Error> {
+		let mut params: nvfbc_sys::NVFBC_BIND_CONTEXT_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
+		params.dwVersion = nvfbc_sys::NVFBC_BIND_CONTEXT_PARAMS_VER;
+		check_ret(
+			self.handle,
+			unsafe { nvfbc_sys::NvFBCBindContext(self.handle, &mut params) }
+		)
+	}
 }
 
 impl Drop for CudaCapturer {
