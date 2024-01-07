@@ -3,7 +3,7 @@
 //! # Supported GPUs
 //! As this uses a proprietary NVIDIA API, the supported devices are limited to NVIDIA GPUs.
 //! Additionally, the NVFBC API is only officially supported on GRID, Tesla, or Quadro X2000+ GPUs.
-//! Unofficial support is possible by applying a [patch](https://github.com/illnyang/nvlax/) to the NVFBC library.
+//! Unofficial support is provided for other GPUs.
 //!
 //! # Supported capture types
 //! Currently only CUDA and system (RAM) capture types are supported.

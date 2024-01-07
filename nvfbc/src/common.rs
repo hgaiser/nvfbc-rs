@@ -18,8 +18,13 @@ pub(crate) fn check_ret(handle: Handle, ret: nvfbc_sys::_NVFBCSTATUS) -> Result<
 }
 
 pub(crate) fn create_handle() -> Result<nvfbc_sys::NVFBC_SESSION_HANDLE, Error> {
+	const MAGIC_PRIVATE_DATA: [u32; 4] = [0xAEF57AC5, 0x401D1A39, 0x1B856BBE, 0x9ED0CEBA];
+
 	let mut params: nvfbc_sys::_NVFBC_CREATE_HANDLE_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 	params.dwVersion = nvfbc_sys::NVFBC_CREATE_HANDLE_PARAMS_VER;
+	params.privateData = MAGIC_PRIVATE_DATA.as_ptr() as _;
+	params.privateDataSize = std::mem::size_of_val(&MAGIC_PRIVATE_DATA) as u32;
+
 	let mut handle = 0;
 	let ret = unsafe { nvfbc_sys::NvFBCCreateHandle(
 		&mut handle,
