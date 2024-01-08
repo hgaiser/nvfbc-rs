@@ -1,6 +1,6 @@
 [package]
 name = "nvfbc-sys"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "Raw FFI bindings for NVFBC, an NVIDIA API for capturing the front buffer from NVIDIA GPUs."
 authors = ["Hans Gaiser <hans@hgaiser.nl>"]
