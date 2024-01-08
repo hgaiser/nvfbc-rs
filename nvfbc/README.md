@@ -4,8 +4,9 @@ This library contains a safe FFI for [NVFBC](https://developer.nvidia.com/captur
 
 ## Supported GPUs
 As this uses a proprietary NVIDIA API, the supported devices are limited to NVIDIA GPUs.
-Additionally, the NVFBC API is only officially supported on GRID, Tesla, or Quadro X2000+ GPUs.
-Unofficial support is provided for other GPUs.
+Officially the NVFBC API is only supported on GRID, Tesla, or Quadro X2000+ GPUs.
+Unofficial support is provided for GeForce GPUs by setting magic private data,
+similar to https://github.com/keylase/nvidia-patch/blob/master/win/nvfbcwrp/nvfbcwrp_main.cpp.
 
 ## Supported capture types
 Currently only CUDA and system (RAM) capture types are supported.
