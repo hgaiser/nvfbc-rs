@@ -1,12 +1,8 @@
-use std::os::raw::c_uint;
-use std::{mem::MaybeUninit, ffi::CStr};
+use std::{ffi::CStr, mem::MaybeUninit, os::raw::c_uint};
 
-use nvfbc_sys::_NVFBCSTATUS_NVFBC_SUCCESS as SUCCESS;
-use nvfbc_sys::NVFBC_SESSION_HANDLE;
+use nvfbc_sys::{NVFBC_SESSION_HANDLE, _NVFBCSTATUS_NVFBC_SUCCESS as SUCCESS};
 
-use crate::CaptureType;
-use crate::Error;
-use crate::Status;
+use crate::{CaptureType, Error, Status};
 
 pub type Handle = NVFBC_SESSION_HANDLE;
 
@@ -26,10 +22,7 @@ pub(crate) fn create_handle() -> Result<nvfbc_sys::NVFBC_SESSION_HANDLE, Error> 
 	params.privateDataSize = std::mem::size_of_val(&MAGIC_PRIVATE_DATA) as u32;
 
 	let mut handle = 0;
-	let ret = unsafe { nvfbc_sys::NvFBCCreateHandle(
-		&mut handle,
-		&mut params
-	)};
+	let ret = unsafe { nvfbc_sys::NvFBCCreateHandle(&mut handle, &mut params) };
 	if ret != SUCCESS {
 		return Err(Error::new(ret, None));
 	}
@@ -56,7 +49,11 @@ pub(crate) fn status(handle: Handle) -> Result<Status, Error> {
 	Ok(params.into())
 }
 
-pub(crate) fn create_capture_session(handle: Handle, capture_type: CaptureType, sampling_rate: std::time::Duration) -> Result<(), Error> {
+pub(crate) fn create_capture_session(
+	handle: Handle,
+	capture_type: CaptureType,
+	sampling_rate: std::time::Duration,
+) -> Result<(), Error> {
 	let mut params: nvfbc_sys::_NVFBC_CREATE_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 	params.dwVersion = nvfbc_sys::NVFBC_CREATE_CAPTURE_SESSION_PARAMS_VER;
 	params.eCaptureType = capture_type as c_uint;
@@ -64,11 +61,15 @@ pub(crate) fn create_capture_session(handle: Handle, capture_type: CaptureType, 
 	params.frameSize = nvfbc_sys::NVFBC_SIZE { w: 0, h: 0 };
 	params.eTrackingType = nvfbc_sys::NVFBC_TRACKING_TYPE_NVFBC_TRACKING_DEFAULT;
 	params.dwSamplingRateMs = sampling_rate.as_millis() as u32;
-	check_ret(handle, unsafe { nvfbc_sys::NvFBCCreateCaptureSession(handle, &mut params) })
+	check_ret(handle, unsafe {
+		nvfbc_sys::NvFBCCreateCaptureSession(handle, &mut params)
+	})
 }
 
 pub(crate) fn destroy_capture_session(handle: Handle) -> Result<(), Error> {
 	let mut params: nvfbc_sys::_NVFBC_DESTROY_CAPTURE_SESSION_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 	params.dwVersion = nvfbc_sys::NVFBC_DESTROY_CAPTURE_SESSION_PARAMS_VER;
-	check_ret(handle, unsafe { nvfbc_sys::NvFBCDestroyCaptureSession(handle, &mut params) })
+	check_ret(handle, unsafe {
+		nvfbc_sys::NvFBCDestroyCaptureSession(handle, &mut params)
+	})
 }

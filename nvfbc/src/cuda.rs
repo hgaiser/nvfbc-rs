@@ -1,28 +1,25 @@
-use std::ffi::c_void;
-use std::mem::MaybeUninit;
-use std::ptr::null_mut;
+use std::{ffi::c_void, mem::MaybeUninit, ptr::null_mut};
 
 use nvfbc_sys::{
-	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT,
 	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS,
-	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT,
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY,
 };
 
 use crate::{
+	common::{
+		check_ret,
+		create_capture_session,
+		create_handle,
+		destroy_capture_session,
+		destroy_handle,
+		status,
+		Handle,
+	},
 	BufferFormat,
 	CaptureType,
 	Error,
 	Status,
-};
-
-use crate::common::{
-	Handle,
-	check_ret,
-	create_capture_session,
-	create_handle,
-	destroy_capture_session,
-	destroy_handle,
-	status,
 };
 
 pub enum CaptureMethod {
@@ -83,7 +80,9 @@ impl CudaCapturer {
 	///
 	/// CUDA must be initialized before creating this object.
 	pub fn new() -> Result<Self, Error> {
-		Ok(Self { handle: create_handle()? })
+		Ok(Self {
+			handle: create_handle()?,
+		})
 	}
 
 	/// Retrieve the status of NVFBC.
@@ -102,7 +101,9 @@ impl CudaCapturer {
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_SETUP_PARAMS_VER;
 		params.eBufferFormat = buffer_format as u32;
-		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToCudaSetUp(self.handle, &mut params) })
+		check_ret(self.handle, unsafe {
+			nvfbc_sys::NvFBCToCudaSetUp(self.handle, &mut params)
+		})
 	}
 
 	/// Stop a capture session.
@@ -112,14 +113,16 @@ impl CudaCapturer {
 
 	/// Retrieve the next frame from the GPU.
 	pub fn next_frame(&mut self, capture_method: CaptureMethod) -> Result<CudaFrameInfo, Error> {
-		let mut device_buffer: *mut c_void =  null_mut();
+		let mut device_buffer: *mut c_void = null_mut();
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS_VER;
 		params.dwFlags = capture_method as u32;
 		params.pFrameGrabInfo = &mut frame_info;
 		params.pCUDADeviceBuffer = &mut device_buffer as *mut _ as *mut c_void;
-		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) })?;
+		check_ret(self.handle, unsafe {
+			nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params)
+		})?;
 
 		Ok(CudaFrameInfo {
 			device_buffer: device_buffer as usize,
@@ -139,10 +142,9 @@ impl CudaCapturer {
 	pub fn release_context(&self) -> Result<(), Error> {
 		let mut params: nvfbc_sys::NVFBC_RELEASE_CONTEXT_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_RELEASE_CONTEXT_PARAMS_VER;
-		check_ret(
-			self.handle,
-			unsafe { nvfbc_sys::NvFBCReleaseContext(self.handle, &mut params) }
-		)
+		check_ret(self.handle, unsafe {
+			nvfbc_sys::NvFBCReleaseContext(self.handle, &mut params)
+		})
 	}
 
 	/// Binds the FBC context to the calling thread.
@@ -164,10 +166,9 @@ impl CudaCapturer {
 	pub fn bind_context(&self) -> Result<(), Error> {
 		let mut params: nvfbc_sys::NVFBC_BIND_CONTEXT_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_BIND_CONTEXT_PARAMS_VER;
-		check_ret(
-			self.handle,
-			unsafe { nvfbc_sys::NvFBCBindContext(self.handle, &mut params) }
-		)
+		check_ret(self.handle, unsafe {
+			nvfbc_sys::NvFBCBindContext(self.handle, &mut params)
+		})
 	}
 }
 

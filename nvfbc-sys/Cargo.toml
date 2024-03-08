@@ -8,3 +8,8 @@ license = "BSD-2-Clause"
 keywords = ["NVFBC"]
 categories = ["multimedia::video"]
 repository = "https://github.com/hgaiser/nvfbc-rs"
+
+[build-dependencies]
+# https://github.com/rust-lang/rust-bindgen/issues/753
+bindgen = { git = "https://github.com/jbaublitz/rust-bindgen.git", branch = "issue-rust-bindgen-753" }
+
