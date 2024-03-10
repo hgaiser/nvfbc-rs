@@ -9,7 +9,9 @@ keywords = ["NVFBC"]
 categories = ["multimedia::video"]
 repository = "https://github.com/hgaiser/nvfbc-rs"
 
+[dependencies]
+windows = { version = "0.54", features = ["Win32_Graphics_Direct3D9"] }
+
 [build-dependencies]
 # https://github.com/rust-lang/rust-bindgen/issues/753
 bindgen = { git = "https://github.com/jbaublitz/rust-bindgen.git", branch = "issue-rust-bindgen-753" }
-

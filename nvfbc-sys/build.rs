@@ -58,19 +58,28 @@ fn main() {
 
 	println!("cargo:rustc-link-search={library_path}");
 	println!("cargo:rustc-link-lib={library_name}");
-	println!("cargo:rerun-if-changed=wrapper.h");
+	println!("cargo:rerun-if-changed={header_name}");
 
+	// Allowlist is transient while Blocklist is not
+	// This results in less re-exported types from d3d9helper.h
 	let bindings = bindgen::Builder::default()
 		.header(header_name)
+		.allowlist_file(".*nvFBC.h")
+		.allowlist_file(".*nvFBCCuda.h")
+		.allowlist_file(".*nvFBCToDx9Vid.h")
+		.allowlist_file(".*nvFBCToSys.h")
+		.blocklist_file(".*d3d9helper.h")
 		.clang_args(["-I", include_path])
 		.clang_args(["-x", "c++"])
-		.clang_macro_fallback()
-		.parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-		.generate()
-		.expect("Unable to generate bindings");
+		.parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
+
+	#[cfg(target_os = "linux")] // Broken for Windows
+	let bindings = bindings.clang_macro_fallback();
 
 	let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 	bindings
+		.generate()
+		.expect("Unable to generate bindings")
 		.write_to_file(out_path.join("bindings.rs"))
 		.expect("Couldn't write bindings!");
 }

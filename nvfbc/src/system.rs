@@ -1,9 +1,16 @@
 use std::{cell::Cell, ffi::c_void, mem::MaybeUninit, ptr::null_mut};
 
+#[cfg(target_os = "linux")]
 use nvfbc_sys::{
-	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS,
-	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT,
-	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS as NoWaitIfNewFrame,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT as NoWait,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY as Blocking,
+};
+#[cfg(target_os = "windows")]
+use nvfbc_sys::{
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_NOFLAGS as NoWaitIfNewFrame,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_NOWAIT as NoWait,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_WAIT_WITH_TIMEOUT as Blocking,
 };
 
 use crate::{
@@ -24,9 +31,9 @@ use crate::{
 
 /// Different methods for capturing a frame.
 pub enum CaptureMethod {
-	NoWait = NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT as isize,
-	NoWaitIfNewFrame = NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS as isize,
-	Blocking = NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY as isize,
+	NoWait = NoWait as isize,
+	NoWaitIfNewFrame = NoWaitIfNewFrame as isize,
+	Blocking = Blocking as isize,
 }
 
 /// Contains information about a frame captured in a CUDA device.
