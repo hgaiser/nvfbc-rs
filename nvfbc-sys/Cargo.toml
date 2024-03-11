@@ -9,7 +9,7 @@ keywords = ["NVFBC"]
 categories = ["multimedia::video"]
 repository = "https://github.com/hgaiser/nvfbc-rs"
 
-[dependencies]
+[target.'cfg(windows)'.dependencies]
 windows = { version = "0.54", features = ["Win32_Graphics_Direct3D9"] }
 
 [build-dependencies]

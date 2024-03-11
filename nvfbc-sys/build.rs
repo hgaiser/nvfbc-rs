@@ -71,15 +71,13 @@ fn main() {
 		.blocklist_file(".*d3d9helper.h")
 		.clang_args(["-I", include_path])
 		.clang_args(["-x", "c++"])
-		.parse_callbacks(Box::new(bindgen::CargoCallbacks::new()));
-
-	#[cfg(target_os = "linux")] // Broken for Windows
-	let bindings = bindings.clang_macro_fallback();
+		.clang_macro_fallback()
+		.parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+		.generate()
+		.expect("Unable to generate bindings");
 
 	let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 	bindings
-		.generate()
-		.expect("Unable to generate bindings")
 		.write_to_file(out_path.join("bindings.rs"))
 		.expect("Couldn't write bindings!");
 }

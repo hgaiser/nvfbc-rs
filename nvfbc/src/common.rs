@@ -10,7 +10,7 @@ use crate::{CaptureType, Error, Status};
 #[cfg(target_os = "linux")]
 pub type Handle = NVFBC_SESSION_HANDLE;
 #[cfg(target_os = "windows")]
-pub type Handle = NVFBC_SESSION_HANDLE;
+pub type Handle = (); // TODO: Windows doesn't have a handle...
 
 pub(crate) fn check_ret(handle: Handle, ret: Return) -> Result<(), Error> {
 	if ret != Success {
