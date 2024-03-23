@@ -125,7 +125,9 @@ impl From<nvfbc_sys::_NVFBC_GET_STATUS_PARAMS> for Status {
 				id: status.outputs[output_index as usize].dwId,
 				name: unsafe {
 					CStr::from_ptr(&status.outputs[output_index as usize].name as *const i8)
-						.to_str().unwrap().to_string()
+						.to_str()
+						.unwrap()
+						.to_string()
 				},
 				tracked_box: Box {
 					x: status.outputs[output_index as usize].trackedBox.x,
@@ -140,7 +142,10 @@ impl From<nvfbc_sys::_NVFBC_GET_STATUS_PARAMS> for Status {
 			is_capture_possible: status.bIsCapturePossible == nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE,
 			currently_capturing: status.bCurrentlyCapturing == nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE,
 			can_create_now: status.bCanCreateNow == nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE,
-			screen_size: Size { w: status.screenSize.w, h: status.screenSize.h },
+			screen_size: Size {
+				w: status.screenSize.w,
+				h: status.screenSize.h,
+			},
 			xrandr_available: status.bXRandRAvailable == nvfbc_sys::_NVFBC_BOOL_NVFBC_TRUE,
 			outputs,
 			nvfbc_version: status.dwNvFBCVersion,

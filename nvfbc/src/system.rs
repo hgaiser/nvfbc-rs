@@ -1,28 +1,25 @@
-use std::cell::Cell;
-use std::ffi::c_void;
-use std::mem::MaybeUninit;
-use std::ptr::null_mut;
+use std::{cell::Cell, ffi::c_void, mem::MaybeUninit, ptr::null_mut};
 
 use nvfbc_sys::{
-	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT,
 	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOFLAGS,
-	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT,
+	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY,
 };
 
-use crate::common::{
-	Handle,
-	check_ret,
-	create_capture_session,
-	create_handle,
-	destroy_capture_session,
-	destroy_handle,
-	status,
-};
 use crate::{
+	common::{
+		check_ret,
+		create_capture_session,
+		create_handle,
+		destroy_capture_session,
+		destroy_handle,
+		status,
+		Handle,
+	},
 	BufferFormat,
+	CaptureType,
 	Error,
 	Status,
-	CaptureType,
 };
 
 /// Different methods for capturing a frame.
@@ -83,7 +80,10 @@ impl SystemCapturer {
 	/// This also initializes a handle for the NVFBC API.
 	pub fn new() -> Result<Self, Error> {
 		let handle = create_handle()?;
-		let self_ = Self { handle, buffer: Box::new(Cell::new(null_mut())) };
+		let self_ = Self {
+			handle,
+			buffer: Box::new(Cell::new(null_mut())),
+		};
 		Ok(self_)
 	}
 
@@ -104,7 +104,9 @@ impl SystemCapturer {
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_SETUP_PARAMS_VER;
 		params.eBufferFormat = buffer_format as u32;
 		params.ppBuffer = self.buffer.as_ptr();
-		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysSetUp(self.handle, &mut params) })
+		check_ret(self.handle, unsafe {
+			nvfbc_sys::NvFBCToSysSetUp(self.handle, &mut params)
+		})
 	}
 
 	/// Stop a capture session.
@@ -127,7 +129,9 @@ impl SystemCapturer {
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS_VER;
 		params.dwFlags = capture_method as u32;
 		params.pFrameGrabInfo = &mut frame_info;
-		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysGrabFrame(self.handle, &mut params) })?;
+		check_ret(self.handle, unsafe {
+			nvfbc_sys::NvFBCToSysGrabFrame(self.handle, &mut params)
+		})?;
 		let buffer_ptr = unsafe { self.buffer.as_ptr().read_volatile().cast() };
 		let buffer = unsafe { std::slice::from_raw_parts(buffer_ptr, frame_info.dwByteSize as usize) };
 
