@@ -58,10 +58,15 @@ fn main() {
 
 	println!("cargo:rustc-link-search={library_path}");
 	println!("cargo:rustc-link-lib={library_name}");
-	println!("cargo:rerun-if-changed=wrapper.h");
+	println!("cargo:rerun-if-changed={header_name}");
 
 	let bindings = bindgen::Builder::default()
 		.header(header_name)
+		.allowlist_file(".*nvFBC.h")
+		.allowlist_file(".*nvFBCCuda.h")
+		.allowlist_file(".*nvFBCToDx9Vid.h")
+		.allowlist_file(".*nvFBCToSys.h")
+		.blocklist_file(".*d3d9helper.h")
 		.clang_args(["-I", include_path])
 		.clang_args(["-x", "c++"])
 		.clang_macro_fallback()

@@ -13,3 +13,5 @@ repository = "https://github.com/hgaiser/nvfbc-rs"
 # https://github.com/rust-lang/rust-bindgen/issues/753
 bindgen = { git = "https://github.com/jbaublitz/rust-bindgen.git", branch = "issue-rust-bindgen-753" }
 
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.54", features = ["Win32_Graphics_Direct3D9"] }
