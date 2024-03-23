@@ -1,19 +1,13 @@
 use std::{ffi::CStr, mem::MaybeUninit, os::raw::c_uint};
 
-#[cfg(target_os = "linux")]
-use nvfbc_sys::{NVFBC_SESSION_HANDLE, _NVFBCSTATUS as Return, _NVFBCSTATUS_NVFBC_SUCCESS as Success};
-#[cfg(target_os = "windows")]
-use nvfbc_sys::{_NVFBCRESULT_NVFBC_SUCCESS as Success, _NVFBC_STATE as Return};
+use nvfbc_sys::{NVFBC_SESSION_HANDLE, _NVFBCSTATUS_NVFBC_SUCCESS as SUCCESS};
 
 use crate::{CaptureType, Error, Status};
 
-#[cfg(target_os = "linux")]
 pub type Handle = NVFBC_SESSION_HANDLE;
-#[cfg(target_os = "windows")]
-pub type Handle = (); // TODO: Windows doesn't have a handle...
 
-pub(crate) fn check_ret(handle: Handle, ret: Return) -> Result<(), Error> {
-	if ret != Success {
+pub(crate) fn check_ret(handle: Handle, ret: nvfbc_sys::_NVFBCSTATUS) -> Result<(), Error> {
+	if ret != SUCCESS {
 		return Err(Error::new(ret, get_last_error(handle)));
 	}
 	Ok(())
@@ -28,11 +22,8 @@ pub(crate) fn create_handle() -> Result<nvfbc_sys::NVFBC_SESSION_HANDLE, Error> 
 	params.privateDataSize = std::mem::size_of_val(&MAGIC_PRIVATE_DATA) as u32;
 
 	let mut handle = 0;
-	#[cfg(target_os = "windows")]
-	let ret = unsafe { nvfbc_sys::NvFBC_CreateEx(&mut params) };
-	#[cfg(target_os = "linux")]
 	let ret = unsafe { nvfbc_sys::NvFBCCreateHandle(&mut handle, &mut params) };
-	if ret != Success {
+	if ret != SUCCESS {
 		return Err(Error::new(ret, None));
 	}
 
@@ -54,9 +45,6 @@ pub(crate) fn get_last_error(handle: Handle) -> Option<String> {
 pub(crate) fn status(handle: Handle) -> Result<Status, Error> {
 	let mut params: nvfbc_sys::_NVFBC_GET_STATUS_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 	params.dwVersion = nvfbc_sys::NVFBC_GET_STATUS_PARAMS_VER;
-	#[cfg(target_os = "windows")]
-	check_ret(handle, unsafe { nvfbc_sys::NvFBC_GetStatusEx(&mut params) })?;
-	#[cfg(target_os = "linux")]
 	check_ret(handle, unsafe { nvfbc_sys::NvFBCGetStatus(handle, &mut params) })?;
 	Ok(params.into())
 }

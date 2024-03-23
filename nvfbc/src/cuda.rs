@@ -1,16 +1,9 @@
 use std::{ffi::c_void, mem::MaybeUninit, ptr::null_mut};
 
-#[cfg(target_os = "windows")]
 use nvfbc_sys::{
-	NVFBC_CUDA_FLAGS_NVFBC_TOCUDA_NOFLAGS as Blocking,
-	NVFBC_CUDA_FLAGS_NVFBC_TOCUDA_NOWAIT as NoWait,
-	NVFBC_CUDA_FLAGS_NVFBC_TOCUDA_WAIT_WITH_TIMEOUT as NoWaitIfNewFrame,
-};
-#[cfg(target_os = "linux")]
-use nvfbc_sys::{
-	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS as Blocking,
-	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT as NoWait,
-	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY as NoWaitIfNewFrame,
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS,
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT,
+	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY,
 };
 
 use crate::{
@@ -35,14 +28,14 @@ pub enum CaptureMethod {
 	/// It is therefore possible to capture the same frame multiple times.
 	/// When this occurs, the current_frame parameter of the
 	/// CudaFrameInfo struct is not incremented.
-	NoWait = NoWait as isize,
+	NoWait = NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT as isize,
 
 	/// Similar to NoWait, except that the capture will not wait if there
 	/// is already a frame available that the client has never seen yet.
-	NoWaitIfNewFrame = NoWaitIfNewFrame as isize,
+	NoWaitIfNewFrame = NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT_IF_NEW_FRAME_READY as isize,
 
 	/// Capturing waits for a new frame or mouse move.
-	Blocking = Blocking as isize,
+	Blocking = NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOFLAGS as isize,
 }
 
 /// Contains information about a frame captured in a CUDA device.
