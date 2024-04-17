@@ -52,7 +52,7 @@ mod error;
 pub mod system;
 mod types;
 
-pub use types::*;
-pub use error::Error;
 pub use cuda::CudaCapturer;
+pub use error::Error;
 pub use system::SystemCapturer;
+pub use types::*;
