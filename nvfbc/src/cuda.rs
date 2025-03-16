@@ -1,6 +1,7 @@
 use std::ffi::c_void;
 use std::mem::MaybeUninit;
 use std::ptr::null_mut;
+use std::time::Duration;
 
 use nvfbc_sys::{
 	NVFBC_TOCUDA_FLAGS_NVFBC_TOCUDA_GRAB_FLAGS_NOWAIT,
@@ -58,6 +59,8 @@ pub struct CudaFrameInfo {
 	///
 	/// This can be used to identify a frame.
 	pub current_frame: u32,
+	/// Whether this frame is a new frame.
+	pub is_new_frame: bool,
 }
 
 impl std::fmt::Debug for CudaFrameInfo {
@@ -111,7 +114,7 @@ impl CudaCapturer {
 	}
 
 	/// Retrieve the next frame from the GPU.
-	pub fn next_frame(&mut self, capture_method: CaptureMethod) -> Result<CudaFrameInfo, Error> {
+	pub fn next_frame(&mut self, capture_method: CaptureMethod, timeout: Option<Duration>) -> Result<CudaFrameInfo, Error> {
 		let mut device_buffer: *mut c_void =  null_mut();
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOCUDA_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
@@ -119,6 +122,9 @@ impl CudaCapturer {
 		params.dwFlags = capture_method as u32;
 		params.pFrameGrabInfo = &mut frame_info;
 		params.pCUDADeviceBuffer = &mut device_buffer as *mut _ as *mut c_void;
+		if let Some(timeout) = timeout {
+			params.dwTimeoutMs = timeout.as_millis() as u32;
+		}
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToCudaGrabFrame(self.handle, &mut params) })?;
 
 		Ok(CudaFrameInfo {
@@ -127,6 +133,7 @@ impl CudaCapturer {
 			width: frame_info.dwWidth,
 			height: frame_info.dwHeight,
 			current_frame: frame_info.dwCurrentFrame,
+			is_new_frame: frame_info.bIsNewFrame != 0,
 		})
 	}
 

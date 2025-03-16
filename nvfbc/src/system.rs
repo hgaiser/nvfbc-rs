@@ -2,6 +2,7 @@ use std::cell::Cell;
 use std::ffi::c_void;
 use std::mem::MaybeUninit;
 use std::ptr::null_mut;
+use std::time::Duration;
 
 use nvfbc_sys::{
 	NVFBC_TOSYS_GRAB_FLAGS_NVFBC_TOSYS_GRAB_FLAGS_NOWAIT,
@@ -47,6 +48,8 @@ pub struct SystemFrameInfo<'a> {
 	///
 	/// This can be used to identify a frame.
 	pub current_frame: u32,
+	/// Whether this frame is a new frame.
+	pub is_new_frame: bool,
 }
 
 impl std::fmt::Debug for SystemFrameInfo<'_> {
@@ -121,12 +124,15 @@ impl SystemCapturer {
 	/// If this restriction would be lifted, there would be a risk of unsound behaviour.
 	/// For example: calling next_frame() twice would overwrite the first buffer with the content of the second buffer.
 	/// Changing resolution inbetween the two calls could lead to reading out of bounds memory.
-	pub fn next_frame(&mut self, capture_method: CaptureMethod) -> Result<SystemFrameInfo, Error> {
+	pub fn next_frame(&mut self, capture_method: CaptureMethod, timeout: Option<Duration>) -> Result<SystemFrameInfo, Error> {
 		let mut frame_info: nvfbc_sys::NVFBC_FRAME_GRAB_INFO = unsafe { MaybeUninit::zeroed().assume_init() };
 		let mut params: nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS = unsafe { MaybeUninit::zeroed().assume_init() };
 		params.dwVersion = nvfbc_sys::NVFBC_TOSYS_GRAB_FRAME_PARAMS_VER;
 		params.dwFlags = capture_method as u32;
 		params.pFrameGrabInfo = &mut frame_info;
+		if let Some(timeout) = timeout {
+			params.dwTimeoutMs = timeout.as_millis() as u32;
+		}
 		check_ret(self.handle, unsafe { nvfbc_sys::NvFBCToSysGrabFrame(self.handle, &mut params) })?;
 		let buffer_ptr = unsafe { self.buffer.as_ptr().read_volatile().cast() };
 		let buffer = unsafe { std::slice::from_raw_parts(buffer_ptr, frame_info.dwByteSize as usize) };
@@ -136,6 +142,7 @@ impl SystemCapturer {
 			width: frame_info.dwWidth,
 			height: frame_info.dwHeight,
 			current_frame: frame_info.dwCurrentFrame,
+			is_new_frame: frame_info.bIsNewFrame != 0,
 		})
 	}
 }

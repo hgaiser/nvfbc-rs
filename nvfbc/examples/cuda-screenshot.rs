@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	capturer.start(BufferFormat::Rgb, 30)?;
 
-	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame)?;
+	let frame_info = capturer.next_frame(CaptureMethod::NoWaitIfNewFrame, None)?;
 	println!("{:#?}", frame_info);
 
 	// Wrap the buffer in GPU memory.
